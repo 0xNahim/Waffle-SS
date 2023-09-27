@@ -1,5 +1,6 @@
 import requests
 import argparse
+import urllib.request
 
 banner = """ __          __     ______ ______ _      ______      _____ _____ 
  \ \        / /\   |  ____|  ____| |    |  ____|    / ____/ ____|
@@ -13,11 +14,9 @@ Waffle-SS is another tool to search for subdomains using a public API.
 api = "https://api.subdomain.center/?domain=" 
 
 def buscar_subdominios(u):
-    r = requests.get(api + u, headers={'Accept': 'application/json'})
-    lista = list(r.json())
+    r = requests.get(api + u, headers={'Accept': 'application/json'}, timeout=5)
     print(f"Los subdominios del dominio {u} son: ")
-    for i in lista:
-        print(i)
+    lista = check(list(r.json()))
     guardar_subdominios(u, lista)
 
 
@@ -33,7 +32,17 @@ def guardar_subdominios(u, lista):
         print("La opción que ingresaste no es valida :c\n")
         guardar_subdominios(u, lista)
 
-print(banner.rstrip(), "\n")
+def check(lista):
+    new_list = []
+    for i in lista:
+        try:
+            respuesta = requests.get("http://"+i+"/", timeout=1)
+            print(i + " " + "["+str(respuesta.status_code)+"]")
+            new_list.append(i + " " + "["+str(respuesta.status_code)+"]")
+        except:
+            print((i + " " + "DNS ERORR"))
+            new_list.append(i + " " + "DNS ERORR")
+    return new_list
 
 def main():
     parser = argparse.ArgumentParser()
@@ -55,4 +64,6 @@ def main():
         parser.print_help()
         exit()
 
-main()
+if __name__ == "__main__":
+    print(banner.rstrip(), "\n")
+    main()
